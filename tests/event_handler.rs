@@ -9,10 +9,12 @@ pub struct SomeType {
     pub age: i32,
 }
 
+type ReturnType = Result<(), String>;
+
 // Test event enum
 #[derive(EventBridge)]
 #[forward_to_trait(TestApiTrait)]
-#[trait_returned_error(String)]
+#[trait_returned_type(ReturnType)]
 pub enum TestEvent {
     SetIndex(i32),
     SetName(String),

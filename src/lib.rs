@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, Attribute, Data, DeriveInput, Fields, Ident};
 
-#[proc_macro_derive(EventBridge, attributes(forward_to_trait, trait_returned_error))]
+#[proc_macro_derive(EventBridge, attributes(forward_to_trait, trait_returned_type))]
 pub fn derive_generate_forward_to(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let enum_name = input.ident;
@@ -20,8 +20,8 @@ pub fn derive_generate_forward_to(input: TokenStream) -> TokenStream {
         Err(err) => return err.to_compile_error().into(),
     };
 
-    let error_type = match get_error_type(&input.attrs) {
-        Ok(error_type) => error_type,
+    let trait_return_type = match get_trait_return_type(&input.attrs) {
+        Ok(trait_return_type) => trait_return_type,
         Err(err) => return err.to_compile_error().into(),
     };
 
@@ -57,17 +57,16 @@ pub fn derive_generate_forward_to(input: TokenStream) -> TokenStream {
         };
 
         quote! {
-            #pattern => api.#method_ident(#args).await?,
+            #pattern => api.#method_ident(#args).await,
         }
     });
 
     let expanded = quote! {
         impl #enum_name {
-            pub async fn forward_to<T: #trait_name>(self, api: &mut T) -> ::std::result::Result<(), #error_type> {
+            pub async fn forward_to<T: #trait_name>(self, api: &mut T) -> #trait_return_type {
                 match self {
                     #( #match_arms )*
                 }
-                Ok(())
             }
         }
     };
@@ -108,10 +107,10 @@ fn get_trait_name(attrs: &[Attribute]) -> syn::Result<Ident> {
     ))
 }
 
-/// Parse the error type from the #[trait_returned_error(...)] attribute.
-fn get_error_type(attrs: &[Attribute]) -> syn::Result<Ident> {
+/// Parse the error type from the #[trait_returned_type(...)] attribute.
+fn get_trait_return_type(attrs: &[Attribute]) -> syn::Result<Ident> {
     for attr in attrs {
-        if attr.path().is_ident("trait_returned_error") {
+        if attr.path().is_ident("trait_returned_type") {
             let path: syn::Path = attr.parse_args()?;
             if let Some(ident) = path.get_ident() {
                 return Ok(ident.clone());
@@ -125,6 +124,6 @@ fn get_error_type(attrs: &[Attribute]) -> syn::Result<Ident> {
     }
     Err(syn::Error::new(
         proc_macro2::Span::call_site(),
-        "Missing #[trait_returned_error(ErrorType)] attribute",
+        "Missing #[trait_returned_type(ErrorType)] attribute",
     ))
 }

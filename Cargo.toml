@@ -1,6 +1,6 @@
 [package]
 name = "event_bridge"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 description = "A procedural macro library for generating event handlers"
 authors = ["Mattis Kieffer <crates-io@mk-io.de>"]

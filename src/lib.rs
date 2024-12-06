@@ -65,7 +65,7 @@ pub fn derive_generate_forward_to(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl #enum_name {
-            pub async fn forward_to<T: #trait_name>(self, api: &mut T) -> #trait_return_type_tokens {
+            pub async fn forward_to<T: #trait_name + ?Sized>(self, api: &mut T) -> #trait_return_type_tokens {
                 match self {
                     #( #match_arms )*
                 }

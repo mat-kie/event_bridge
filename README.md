@@ -26,7 +26,7 @@ it generates a `forward_to` method that:
 - Consumes your event (the enum variant).
 - Matches the event variant to the corresponding async trait method based on variant naming.
 - Calls the trait method with the extracted fields from the enum variant.
-- Returns a `Result<(), ErrorType>` to handle any errors that may occur during the method call.
+- Returns the specified return type of the trait methods.
 
 This significantly reduces the boilerplate involved in writing `match` arms and
 manually forwarding arguments for each new event added to your application.
@@ -50,12 +50,12 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 // Define a custom error type for demonstration
-type MyErrorType = String;
+type MyReturnType = Result<(), String>;
 
 // Define an event enum and associate it with a trait and error type
 #[derive(EventBridge)]
 #[forward_to_trait(MyApiTrait)]
-#[trait_returned_error(MyErrorType)]
+#[trait_returned_type(MyReturnType)]
 pub enum Event {
   SetValue(i32),
   SetName(String),
@@ -65,10 +65,9 @@ pub enum Event {
 // Define the API trait that corresponds to the event variants
 #[async_trait]
 pub trait MyApiTrait {
-  type EventType;
-  async fn set_value(&mut self, value: i32) -> Result<(), MyErrorType>;
-  async fn set_name(&mut self, name: String) -> Result<(), MyErrorType>;
-  async fn initialize(&mut self) -> Result<(), MyErrorType>;
+  async fn set_value(&mut self, value: i32) -> MyReturnType;
+  async fn set_name(&mut self, name: String) -> MyReturnType;
+  async fn initialize(&mut self) -> MyReturnType;
 }
 
 // Example usage
@@ -94,10 +93,10 @@ The macro supports two attributes on the enum:
   Specifies the trait that defines the async methods corresponding to each enum
   variant.
 
-- `#[trait_returned_error(ErrorType)]` (optional)
+- `#[trait_returned_type(ReturnType)]` (optional)
   
-  Specifies the error type returned by the generated event handler. If omitted,
-  the handler defaults to `Result<(), ()>`.
+  Specifies the return type returned by the generated event handler. If omitted,
+  the handler defaults to `()`.
 
 ## Supported Variants
 
@@ -120,9 +119,7 @@ arguments match the variant’s fields in order and type.
 
 ## Error Handling
 
-If you specify `#[trait_returned_error(MyError)]`, the generated event handler
-returns `Result<(), MyError>`. Ensure that your trait methods also return
-`Result<(), MyError>` to maintain consistency.
+Ensure that your trait methods return the appropriate type to maintain consistency.
 
 ## License
 

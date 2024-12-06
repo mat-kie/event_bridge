@@ -65,7 +65,7 @@ pub enum Event {
 // Define the API trait that corresponds to the event variants
 #[async_trait]
 pub trait MyApiTrait {
-  async fn set_value(&mut self, value: i32) ->MyReturnType;
+  async fn set_value(&mut self, value: i32) -> MyReturnType;
   async fn set_name(&mut self, name: String) -> MyReturnType;
   async fn initialize(&mut self) -> MyReturnType;
 }
@@ -86,7 +86,7 @@ async fn main() {
 
 ## Configuration
 
-The macro supports two attribute on the enum:
+The macro supports two attributes on the enum:
 
 - `#[forward_to_trait(TraitName)]` (required)
   

@@ -1,0 +1,25 @@
+[package]
+name = "event_bridge"
+version = "0.1.0"
+edition = "2021"
+description = "A procedural macro library for generating event handlers"
+authors = ["Mattis Kieffer <crates-io@mk-io.de>"]
+license = "MIT"
+repository = "https://github.com/mat-kie/event_bridge"
+readme = "README.md"
+keywords = ["proc-macro", "async", "event-handler"]
+categories = ["development-tools::code-generation", "macros"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.92"
+quote = "1.0.37"
+syn = { version = "2.0.90", features = ["full"] }
+
+[dev-dependencies]
+async-trait = "0.1.83"
+mockall = "0.13.1"
+tokio = { version = "1.42.0", features = ["full"] }
+trybuild = "1.0.101"

@@ -1,4 +1,5 @@
 # event_bridge
+[![Pipeline Status](https://github.com/mat-kie/event_bridge/actions/workflows/rust.yml/badge.svg)](https://github.com/mat-kie/event_bridge/actions/workflows/rust.yml)
 
 A procedural macro that generates asynchronous event handlers from enum
 definitions, automatically dispatching enum variants to associated trait

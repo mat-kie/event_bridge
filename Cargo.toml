@@ -7,8 +7,7 @@ authors = ["Mattis Kieffer <crates-io@mk-io.de>"]
 license = "MIT"
 repository = "https://github.com/mat-kie/event_bridge"
 readme = "README.md"
-keywords = ["proc-macro", "async", "event-handler"]
-categories = ["development-tools::code-generation", "macros"]
+keywords = ["macros", "async", "event-handler", "derive"]
 
 [lib]
 proc-macro = true

@@ -1,6 +1,5 @@
-
 use async_trait::async_trait;
-use event_bridge::GenerateEventHandler;
+use event_bridge::EventBridge;
 use mockall::{mock, predicate::eq};
 
 // Test struct for complex types
@@ -11,9 +10,9 @@ pub struct SomeType {
 }
 
 // Test event enum
-#[derive(GenerateEventHandler)]
-#[event_handler_trait(TestApiTrait)]
-#[event_handler_error(String)]
+#[derive(EventBridge)]
+#[forward_to_trait(TestApiTrait)]
+#[trait_returned_error(String)]
 pub enum TestEvent {
     SetIndex(i32),
     SetName(String),
@@ -51,17 +50,15 @@ async fn test_set_index() {
         .once()
         .returning(|_| Ok(()));
 
-    assert!(TestEvent::SetIndex(42).event_handler(&mut mock).await.is_ok());
+    assert!(TestEvent::SetIndex(42).forward_to(&mut mock).await.is_ok());
 }
 
 #[tokio::test]
 async fn test_initialize() {
     let mut mock = MockTestApiImpl::new();
-    mock.expect_initialize()
-        .once()
-        .returning(|| Ok(()));
+    mock.expect_initialize().once().returning(|| Ok(()));
 
-    assert!(TestEvent::Initialize.event_handler(&mut mock).await.is_ok());
+    assert!(TestEvent::Initialize.forward_to(&mut mock).await.is_ok());
 }
 
 #[tokio::test]
@@ -73,7 +70,7 @@ async fn test_error_propagation() {
         .returning(|_| Err("test error".to_string()));
 
     let result = TestEvent::SetName("test".to_string())
-        .event_handler(&mut mock)
+        .forward_to(&mut mock)
         .await;
     assert!(result.is_err());
     assert_eq!(result.unwrap_err(), "test error");

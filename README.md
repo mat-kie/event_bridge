@@ -20,8 +20,8 @@ specified API trait.
 
 ## How It Works
 
-When you apply the `#[derive(GenerateEventHandler)]` macro to your event enum,
-it generates an `event_handler` method that:
+When you apply the `#[derive(EventBridge)]` macro to your event enum,
+it generates a `forward_to` method that:
 
 - Consumes your event (the enum variant).
 - Matches the event variant to the corresponding async trait method based on variant naming.
@@ -45,7 +45,7 @@ async-trait = "0.1"
 
 ```rust
 use async_trait::async_trait;
-use event_bridge::GenerateEventHandler;
+use event_bridge::EventBridge;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -53,9 +53,9 @@ use tokio::sync::Mutex;
 type MyErrorType = String;
 
 // Define an event enum and associate it with a trait and error type
-#[derive(GenerateEventHandler)]
-#[event_handler_trait(MyApiTrait)]
-#[event_handler_error(MyErrorType)]
+#[derive(EventBridge)]
+#[forward_to_trait(MyApiTrait)]
+#[trait_returned_error(MyErrorType)]
 pub enum Event {
   SetValue(i32),
   SetName(String),
@@ -81,7 +81,7 @@ async fn main() {
   let some_event = Event::SetValue(42);
 
   // Dispatching an event becomes straightforward:
-  let result = some_event.event_handler(&mut api_impl).await;
+  let result = some_event.forward_to(&mut api_impl).await;
 }
 ```
 
@@ -89,12 +89,12 @@ async fn main() {
 
 The macro supports two attributes on the enum:
 
-- `#[event_handler_trait(TraitName)]` (required)
+- `#[forward_to_trait(TraitName)]` (required)
   
   Specifies the trait that defines the async methods corresponding to each enum
   variant.
 
-- `#[event_handler_error(ErrorType)]` (optional)
+- `#[trait_returned_error(ErrorType)]` (optional)
   
   Specifies the error type returned by the generated event handler. If omitted,
   the handler defaults to `Result<(), ()>`.
@@ -104,8 +104,8 @@ The macro supports two attributes on the enum:
 The macro handles various enum variants:
 
 ```rust
-#[derive(GenerateEventHandler)]
-#[event_handler_trait(Handler)]
+#[derive(EventBridge)]
+#[forward_to_trait(Handler)]
 enum Event {
   NoArgs,                      // Unit variant
   SingleArg(String),           // Single argument
@@ -120,7 +120,7 @@ arguments match the variant’s fields in order and type.
 
 ## Error Handling
 
-If you specify `#[event_handler_error(MyError)]`, the generated event handler
+If you specify `#[trait_returned_error(MyError)]`, the generated event handler
 returns `Result<(), MyError>`. Ensure that your trait methods also return
 `Result<(), MyError>` to maintain consistency.
 

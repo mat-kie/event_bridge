@@ -2,22 +2,16 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{parse_macro_input, Attribute, Data, DeriveInput, Fields, Ident};
 
-#[proc_macro_derive(
-    GenerateEventHandler,
-    attributes(event_handler_trait, event_handler_error)
-)]
-pub fn derive_generate_event_handler(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(EventBridge, attributes(forward_to_trait, trait_returned_error))]
+pub fn derive_generate_forward_to(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let enum_name = input.ident;
     let data_enum = match input.data {
         Data::Enum(data_enum) => data_enum,
         _ => {
-            return syn::Error::new_spanned(
-                enum_name,
-                "GenerateEventHandler can only be used on enums",
-            )
-            .to_compile_error()
-            .into();
+            return syn::Error::new_spanned(enum_name, "EventBridge can only be used on enums")
+                .to_compile_error()
+                .into();
         }
     };
 
@@ -69,7 +63,7 @@ pub fn derive_generate_event_handler(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl #enum_name {
-            pub async fn event_handler<T: #trait_name>(self, api: &mut T) -> ::std::result::Result<(), #error_type> {
+            pub async fn forward_to<T: #trait_name>(self, api: &mut T) -> ::std::result::Result<(), #error_type> {
                 match self {
                     #( #match_arms )*
                 }
@@ -93,10 +87,10 @@ fn to_snake_case(input: &str) -> String {
     s
 }
 
-/// Parse the trait name from the #[event_handler_trait(...)] attribute.
+/// Parse the trait name from the #[forward_to_trait(...)] attribute.
 fn get_trait_name(attrs: &[Attribute]) -> syn::Result<Ident> {
     for attr in attrs {
-        if attr.path().is_ident("event_handler_trait") {
+        if attr.path().is_ident("forward_to_trait") {
             let path: syn::Path = attr.parse_args()?;
             if let Some(ident) = path.get_ident() {
                 return Ok(ident.clone());
@@ -110,14 +104,14 @@ fn get_trait_name(attrs: &[Attribute]) -> syn::Result<Ident> {
     }
     Err(syn::Error::new(
         proc_macro2::Span::call_site(),
-        "Missing #[event_handler_trait(TraitName)] attribute",
+        "Missing #[forward_to_trait(TraitName)] attribute",
     ))
 }
 
-/// Parse the error type from the #[event_handler_error(...)] attribute.
+/// Parse the error type from the #[trait_returned_error(...)] attribute.
 fn get_error_type(attrs: &[Attribute]) -> syn::Result<Ident> {
     for attr in attrs {
-        if attr.path().is_ident("event_handler_error") {
+        if attr.path().is_ident("trait_returned_error") {
             let path: syn::Path = attr.parse_args()?;
             if let Some(ident) = path.get_ident() {
                 return Ok(ident.clone());
@@ -131,6 +125,6 @@ fn get_error_type(attrs: &[Attribute]) -> syn::Result<Ident> {
     }
     Err(syn::Error::new(
         proc_macro2::Span::call_site(),
-        "Missing #[event_handler_error(ErrorType)] attribute",
+        "Missing #[trait_returned_error(ErrorType)] attribute",
     ))
 }
